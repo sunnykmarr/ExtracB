@@ -31,12 +31,12 @@ def initializing_bot(inp_file_df):
     example_col = example_col_temp
     inp_file_df.columns = example_col
 
-    print("Hello, Column names presented in the list are:")
+    print("Hello, How I can assist you. We have file uploaded where following column names are present")
     example_col_string=" ".join(example_col)
     print(example_col_string)
-    print ("Here are the example queries")
+    print ("Please use only these column names. Here are the example queries")
     print("1. What was the price of item cold coffee on date 25th Feb")
-    print("To stop bot please give input: Thanks. I am done for now.")
+    print("To stop bot please give input: Thanks. I am done.")
     return 0
 
 def data_normalization(inp_file_df, example_sent):
@@ -111,7 +111,7 @@ def running_bot(inp_file_df):
         if(operation==-1):
             print("There are", len(query_output), "matching rows found based on your query")
             #print(query_output, row.names = FALSE)
-            print("Query output is", query_output[y].head(1))
+            print("Query output is", query_output[y].head(1).to_string(index=False))
 
             inp='no'
             if(len(query_output) > 1):
@@ -121,19 +121,34 @@ def running_bot(inp_file_df):
             if(inp!='yes'):
                 break
         elif(operation==0):
-            print(query_output[y].min()," to ", query_output[y].max())
+            try:
+                print(query_output[y].min()," to ", query_output[y].max())
+            except:
+                print("Range operation is not allowed on non numeric data. Please run the different query")
             break
         elif(operation==1):
-            print(query_output[y].sum())
+            try:
+                print(query_output[y].sum())
+            except:
+                print("Sum operation is not allowed on non numeric data. Please run the different query")
             break
         elif(operation==2):
-            print(query_output[y].max())
+            try:
+                print(query_output[y].max())
+            except:
+                print("Max operation is not allowed on non numeric data. Please run the different query")
             break
         elif(operation == 3):
-            print(query_output[y].min())
+            try:
+                print(query_output[y].min())
+            except:
+                print("Min operation is not allowed on non numeric data. Please run the different query")
             break
         else:
-            print(query_output[y].mean())
+            try:
+                print(query_output[y].mean())
+            except:
+                print("Average operation is not allowed on non numeric data. Please run the different query")
             break
     return 0
 
