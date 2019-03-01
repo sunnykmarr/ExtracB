@@ -138,14 +138,22 @@ def running_bot():
         i += 1
 
     x[temp_key.strip()] = temp_value.strip()
+    for i in x.copy().keys():
+        if i =="":
+            del x[i]
+
     # print("x value is", x)
 
     # df.loc[df['column_name'] == some_value]
     # print(updated_inp_file_df.head())
     query_output = updated_inp_file_df
-    for i in x.keys():
-        query_output = query_output[query_output[i] == x[i]]
-    # query_output = inp_file_df[inp_file_df['item'] == "Cold Coffee"]
+
+    if(x):
+        for i in x.keys():
+            query_output = query_output[query_output[i] == x[i]]
+        # query_output = inp_file_df[inp_file_df['item'] == "Cold Coffee"]
+
+    print("Query output is", query_output)
 
     if operation == -1:
         if len(query_output) == 0:
