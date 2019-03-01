@@ -55,6 +55,7 @@ def initializing_bot():
 
 
 def data_normalization(example_sent):
+    example_sent = example_sent.replace("on","date")
     newStopWords = {"give", "me", "tell", "show", "?", "all", ',', '.'}
     stop_words = set(stopwords.words("english"))
     stop_words = stop_words.union(newStopWords)
