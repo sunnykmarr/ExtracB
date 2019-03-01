@@ -107,8 +107,9 @@ def running_bot():
             break
 
     if not flag:
-        res = "Given columns not found in input file. Please provide correct column names"
+        res = "Given attribute  not found. Please provide the correct attribute"
         print(res)
+        return res
 
     allowed_operations = ["range", "sum", "maximum", "minimum", "average"]
     operation = -1
