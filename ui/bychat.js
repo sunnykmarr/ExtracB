@@ -3,8 +3,8 @@ var botui;
 $(document).ready(function () {
 
     botui = new BotUI('my-botui-app');
-    addSystemMessage = msg => {
-        botui.message.add({
+    addSystemMessage = async msg => {
+        await botui.message.add({
             content: msg
         });
         let speech = new SpeechSynthesisUtterance(msg);
@@ -23,33 +23,55 @@ $(document).ready(function () {
     addSystemMessage('Welcome to Blue Yonder 🙏🏻')
 
     // Get the input field
-    var input = document.getElementById("humanMsgInput");
+    let input = document.getElementById("humanMsgInput");
+
+    send = async inputVal => {
+        let result;
+        try {
+            result = await $.ajax({ url: "http://localhost:5000?msg=" + inputVal });
+            resultAction(result)
+        } catch (err) {
+            result = "Oops"
+            addSystemMessage(result)
+        }
+    }
+
+    resultAction = async result => {
+        if (isJsonString(result)) {
+            resultObj = JSON.parse(result)
+            if (resultObj.type === "array") {
+                for (message of resultObj.value) {
+                    await addSystemMessage(message)
+                }
+            } else if (resultObj.type === "question") {
+                botui.action.button({
+                    action: [
+                        {
+                            text: 'Yes',
+                            value: 'yes'
+                        }, {
+                            text: 'No',
+                            value: 'no'
+                        }
+                    ]
+                }).then(function (res) {
+                    send(res.value)
+                });
+            }
+        } else {
+            addSystemMessage(result)
+        }
+    }
 
     $("#humanMsgEnter").click(async () => {
+        botui.action.hide();
         let inputVal = input.value
         await botui.message.add({
             content: inputVal,
             human: true
         });
         input.value = "";
-        let result;
-        try {
-            result = await $.ajax({ url: "http://localhost:5000?msg=" + inputVal });
-            if (isJsonString(result)) {
-                resultObj = JSON.parse(result)
-                if (resultObj.type === "array") {
-                    for (message of resultObj.value) {
-                        addSystemMessage(message)
-                    }
-                }
-            } else {
-                addSystemMessage(result)
-            }
-        } catch (err) {
-            result = "Oops"
-            addSystemMessage(result)
-        }
-        
+        send(inputVal)
     });
 
     // Execute a function when the user releases a key on the keyboard
