@@ -37,7 +37,8 @@ $(document).ready(function () {
     }
 
     resultAction = async result => {
-        if (isJsonString(result)) {
+        if (result.startsWith("{") && isJsonString(result)) {
+            console.log(result)
             resultObj = JSON.parse(result)
             if (resultObj.type === "array") {
                 for (message of resultObj.value) {

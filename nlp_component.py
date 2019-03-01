@@ -46,11 +46,11 @@ def initializing_bot():
     example_col = example_col_temp
     inp_file_df.columns = example_col
 
-    help_strings.append("Hello, How I can assist you. We have file uploaded where following column names are present")
-    help_strings.append(" ".join(example_col))
-    help_strings.append("Please use only these column names. Here are the example queries")
-    help_strings.append("1. What was the price of item cold coffee on date 25th Feb")
-    help_strings.append("To stop bot please give input: Thanks. I am done.")
+    help_strings.append("You can query on following attributes")
+    help_strings.append(", ".join(example_col))
+    help_strings.append("Here are some examples")
+    help_strings.append("1. What was the price of item cold coffee on date 25th Feb?")
+    help_strings.append("2. What all products are there?")
     return 0
 
 
