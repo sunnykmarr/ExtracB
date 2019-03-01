@@ -194,7 +194,7 @@ def running_bot():
             res = "Min operation is not allowed on non numeric data. Please run the different query."
     else:
         try:
-            res = str(query_output[y].mean())
+            res = str(query_output[y].mean().round(3))
         except:
             res = "Average operation is not allowed on non numeric data. Please run the different query."
     print(res)
