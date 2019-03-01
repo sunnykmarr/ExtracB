@@ -151,6 +151,7 @@ def running_bot():
     if(x):
         for i in x.keys():
             query_output = query_output[query_output[i] == x[i]]
+            #query_output = query_output[str(query_output[i]).lower().startswith(str(x[i]).lower())]
         # query_output = inp_file_df[inp_file_df['item'] == "Cold Coffee"]
 
     print("Query output is", query_output)
