@@ -153,11 +153,11 @@ def running_bot():
         else:
             query_output_string = "There are " + str(
                 len(query_output)) + " matching rows found based on your query."
-            more_query_string = "Do you want to apply more query on these rows. Type yes/no."
+            more_query_string = "Do you want to apply more query on these rows?"
             print(more_query_string)
             query_output_string += "\n" + more_query_string
             updated_inp_file_df = query_output
-
+            return json.dumps({"type": "question", "value": query_output_string})
         print(query_output_string)
         res = query_output_string
     elif operation == 0:

@@ -44,6 +44,7 @@ $(document).ready(function () {
                     await addSystemMessage(message)
                 }
             } else if (resultObj.type === "question") {
+                await addSystemMessage(resultObj.value)
                 botui.action.button({
                     action: [
                         {
