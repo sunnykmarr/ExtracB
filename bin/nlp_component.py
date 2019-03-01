@@ -6,14 +6,76 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import pandas as pd
+import os, requests, time
+from xml.etree import ElementTree
+import simpleaudio as sa
+import azure.cognitiveservices.speech as speechsdk
 
-# Adding stop words in nltk
-#def custom_stop_words(stop_words_list):
-#    stop_words = stopwords.words('english')
-#    print(type(stop_words))
-#    newStopWords = ["give", "me", "tell", "show"]
-#    stop_words.append(newStopWords[0])
-#   return 0
+
+
+speech_key, service_region = "588aa80d706d4b869a85543562160a3a", "westus"
+speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
+speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
+
+
+
+def create_speech():
+    print("Say something...")
+    result = speech_recognizer.recognize_once()
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        print("Recognized: {}".format(result.text))
+    elif result.reason == speechsdk.ResultReason.NoMatch:
+        print("No speech could be recognized: {}".format(result.no_match_details))
+    elif result.reason == speechsdk.ResultReason.Canceled:
+        cancellation_details = result.cancellation_details
+        print("Speech Recognition canceled: {}".format(cancellation_details.reason))
+        if cancellation_details.reason == speechsdk.CancellationReason.Error:
+            print("Error details: {}".format(cancellation_details.error_details))
+
+    return format(result.text).lower()
+
+
+def get_speech(speech_txt):
+    access_token = None
+    tts = speech_txt
+    timestr = time.strftime("%Y%m%d-%H%M")
+    fetch_token_url = "https://westus.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    headers = {
+            'Ocp-Apim-Subscription-Key': speech_key
+    }
+    response = requests.post(fetch_token_url, headers=headers)
+    access_token = str(response.text)
+
+    base_url = 'https://westus.tts.speech.microsoft.com/'
+    path = 'cognitiveservices/v1'
+    constructed_url = base_url + path
+    headers = {
+            'Authorization': 'Bearer ' + str(access_token),
+            'Content-Type': 'application/ssml+xml',
+            'X-Microsoft-OutputFormat': 'riff-24khz-16bit-mono-pcm',
+            'User-Agent': 'YOUR_RESOURCE_NAME'
+        }
+    xml_body = ElementTree.Element('speak', version='1.0')
+    xml_body.set('{http://www.w3.org/XML/1998/namespace}lang', 'en-us')
+    voice = ElementTree.SubElement(xml_body, 'voice')
+    voice.set('{http://www.w3.org/XML/1998/namespace}lang', 'en-US')
+    voice.set('name', 'Microsoft Server Speech Text to Speech Voice (en-US, Guy24KRUS)')
+    voice.text = tts
+    body = ElementTree.tostring(xml_body)
+    response = requests.post(constructed_url, headers=headers, data=body)
+    if response.status_code == 200:
+        with open('sample-' + timestr + '.wav', 'wb') as audio:
+            audio.write(response.content)
+            print("\nStatus code: " + str(response.status_code) + "\nYour TTS is ready for playback.\n")
+            global audio_name
+            audio_name= str('sample-' + timestr + '.wav')
+            print(audio_name)
+
+    else:
+        print("\nStatus code: " + str(response.status_code) + "\nSomething went wrong. Check your subscription key and headers.\n")
+
+    return audio_name
+
 
 def preprocessing_input_file():
     # Taking input file and finding column names
@@ -40,7 +102,7 @@ def initializing_bot(inp_file_df):
     return 0
 
 def data_normalization(inp_file_df, example_sent):
-    newStopWords = {"give", "me", "tell", "show"}
+    newStopWords = {"give", "me", "tell", "show","?"}
     stop_words = set(stopwords.words('english'))
     stop_words = stop_words.union(newStopWords)
     word_tokens = word_tokenize(example_sent)
@@ -59,8 +121,12 @@ def running_bot(inp_file_df):
         example_col = inp_file_df.columns
         # Taking user query.
         #example_sent = "give me the price of item cold coffee on date 25th feb"
-        example_sent = input("Enter the input")
-        filtered_sentence = data_normalization(inp_file_df, example_sent)
+        inp = input("Do you want Typing? yes/ no")
+        if inp == 'yes':
+            example_sent = input("Enter the input")
+            filtered_sentence = data_normalization(inp_file_df, example_sent)
+        else:
+            filtered_sentence = data_normalization(inp_file_df, create_speech())
 
         flag=False
         for i in range(0, len(filtered_sentence)):
@@ -115,7 +181,7 @@ def running_bot(inp_file_df):
 
             inp='no'
             if(len(query_output) > 1):
-                print("Do you want to apply more query on these", len(query_output), "rows")
+                print("Do you want to apply more query on these", len(query_output), "rows. Type yes/no")
                 inp = input()
                 inp_file_df=query_output
             if(inp!='yes'):
@@ -157,5 +223,8 @@ def running_bot(inp_file_df):
 inp_file_df = preprocessing_input_file()
 initializing_bot(inp_file_df)
 running_bot(inp_file_df)
+#wave_obj = sa.WaveObject.from_wave_file(get_speech(speech_txt))
+#play_obj = wave_obj.play()
+#play_obj.wait_done()
 #print(y)
 #print(x)
