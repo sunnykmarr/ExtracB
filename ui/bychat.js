@@ -3,9 +3,24 @@ var botui;
 $(document).ready(function () {
 
     botui = new BotUI('my-botui-app');
-    botui.message.add({
-        content: 'Welcome to Blue Yonder 🙏🏻'
-    });
+    addSystemMessage = msg => {
+        botui.message.add({
+            content: msg
+        });
+        let speech = new SpeechSynthesisUtterance(msg);
+        window.speechSynthesis.speak(speech);
+    }
+
+    isJsonString = str => {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
+    }
+
+    addSystemMessage('Welcome to Blue Yonder 🙏🏻')
 
     // Get the input field
     var input = document.getElementById("humanMsgInput");
@@ -17,12 +32,24 @@ $(document).ready(function () {
             human: true
         });
         input.value = "";
-        let result = await $.ajax({ url: "http://localhost:5000?msg=" + inputVal });
-        await botui.message.add({
-            content: result,
-        });
-        var msg = new SpeechSynthesisUtterance(result);
-        window.speechSynthesis.speak(msg);
+        let result;
+        try {
+            result = await $.ajax({ url: "http://localhost:5000?msg=" + inputVal });
+            if (isJsonString(result)) {
+                resultObj = JSON.parse(result)
+                if (resultObj.type === "array") {
+                    for (message of resultObj.value) {
+                        addSystemMessage(message)
+                    }
+                }
+            } else {
+                addSystemMessage(result)
+            }
+        } catch (err) {
+            result = "Oops"
+            addSystemMessage(result)
+        }
+        
     });
 
     // Execute a function when the user releases a key on the keyboard

@@ -2,16 +2,25 @@
 # 1. Column names is assumed to be of word length 1
 # 2. Values in columns is assumed to be word length 1
 
+import nltk
+import json
 import pandas as pd
 from flask import Flask, request
 from flask_cors import CORS
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+
+
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
 
 app = Flask(__name__)
 CORS(app)
 
 inp_file_df = None
+help_strings = []
 updated_inp_file_df = None
 flag_df_changed = False
 
@@ -27,7 +36,7 @@ preprocessing_input_file()
 
 
 def initializing_bot():
-    global inp_file_df
+    global inp_file_df, help_strings
     print(inp_file_df.columns.values.tolist())
     # example_col=["item", "date", "price"]
     example_col_temp = []
@@ -37,14 +46,11 @@ def initializing_bot():
     example_col = example_col_temp
     inp_file_df.columns = example_col
 
-    print(
-        "Hello, How I can assist you. We have file uploaded where following column names are present"
-    )
-    example_col_string = " ".join(example_col)
-    print(example_col_string)
-    print("Please use only these column names. Here are the example queries")
-    print("1. What was the price of item cold coffee on date 25th Feb")
-    print("To stop bot please give input: Thanks. I am done.")
+    help_strings.append("Hello, How I can assist you. We have file uploaded where following column names are present")
+    help_strings.append(" ".join(example_col))
+    help_strings.append("Please use only these column names. Here are the example queries")
+    help_strings.append("1. What was the price of item cold coffee on date 25th Feb")
+    help_strings.append("To stop bot please give input: Thanks. I am done.")
     return 0
 
 
@@ -55,10 +61,11 @@ def data_normalization(example_sent):
     word_tokens = word_tokenize(example_sent)
     filtered_sentence = [w for w in word_tokens if not w in stop_words]
     filtered_sentence = []
-    # removing stop words
+    # removing stop words and applying lemmitization
+    lemmatizer = WordNetLemmatizer()
     for w in word_tokens:
         if w not in stop_words:
-            filtered_sentence.append(w)
+            filtered_sentence.append(lemmatizer.lemmatize(w))
     # print("word tokens are", word_tokens)
     # print("filtered sentence tokens are", filtered_sentence)
     return filtered_sentence
@@ -66,7 +73,7 @@ def data_normalization(example_sent):
 
 @app.route("/")
 def running_bot():
-    global inp_file_df
+    global inp_file_df, help_strings
     global updated_inp_file_df
     global flag_df_changed
     # print("example columns are", example_col)
@@ -78,7 +85,8 @@ def running_bot():
     if msg == "yes":
         flag_df_changed = True
         return "Please provide the query"
-
+    if msg == "help":
+        return json.dumps({"type": "array", "value": help_strings})
     if not flag_df_changed:
         updated_inp_file_df = inp_file_df
 
@@ -87,6 +95,7 @@ def running_bot():
     example_col = updated_inp_file_df.columns
     print("Processing message: {}".format(msg))
     filtered_sentence = data_normalization(msg)
+    # print("filtered sentence is", filtered_sentence)
 
     flag = False
     for i in range(0, len(filtered_sentence)):
