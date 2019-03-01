@@ -18,6 +18,19 @@ speech_key, service_region = "588aa80d706d4b869a85543562160a3a", "westus"
 speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
 speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
 
+app = Flask(__name__)
+CORS(app)
+
+inp_file_df = None
+
+def preprocessing_input_file():
+    global inp_file_df
+    # Taking input file and finding column names
+    excel_file = "Item_price.xlsx"
+    inp_file_df = pd.read_excel(excel_file)
+
+preprocessing_input_file()
+
 def create_speech():
     print("Say something...")
     result = speech_recognizer.recognize_once()
@@ -82,11 +95,7 @@ def get_speech(speech_txt):
     return audio_name
 
 
-def preprocessing_input_file():
-    # Taking input file and finding column names
-    excel_file = "Item_price.xlsx"
-    inp_file_df = pd.read_excel(excel_file)
-    return inp_file_df
+
 
 
 def initializing_bot(inp_file_df):
@@ -126,7 +135,8 @@ def data_normalization(inp_file_df, example_sent):
     return filtered_sentence
 
 @app.route("/")
-def running_bot(inp_file_df):
+def running_bot():
+    global inp_file_df
     while 1:
         example_col = inp_file_df.columns
         # Taking user query.
@@ -138,6 +148,7 @@ def running_bot(inp_file_df):
                 msg = input("Enter the input")
             else:
                 msg = create_speech()
+        print("Processing message: {}".format(msg))
         filtered_sentence = data_normalization(inp_file_df, msg)
 
         flag = False
@@ -250,13 +261,12 @@ def running_bot(inp_file_df):
             break
     return 0
 
-app = Flask(__name__)
-CORS(app)
-
 # adding_stop_words()
-inp_file_df = preprocessing_input_file()
+
 initializing_bot(inp_file_df)
-running_bot(inp_file_df)
+
+app.run()
+# running_bot(inp_file_df)
 # wave_obj = sa.WaveObject.from_wave_file(get_speech(speech_txt))
 # play_obj = wave_obj.play()
 # play_obj.wait_done()
