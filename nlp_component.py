@@ -49,7 +49,7 @@ def initializing_bot():
 
 
 def data_normalization(example_sent):
-    newStopWords = {"give", "me", "tell", "show", "?"}
+    newStopWords = {"give", "me", "tell", "show", "?", "all", ',', '.'}
     stop_words = set(stopwords.words("english"))
     stop_words = stop_words.union(newStopWords)
     word_tokens = word_tokenize(example_sent)
@@ -135,19 +135,21 @@ def running_bot():
     # query_output = inp_file_df[inp_file_df['item'] == "Cold Coffee"]
 
     if operation == -1:
-        query_output_string = "There are " + str(
-            len(query_output)) + " matching rows found based on your query." + "\n" + "Query output is " + query_output[
-                                  y].head(1).to_string(index=False) + " ."
-        print(query_output_string)
-        res = query_output_string
-
-        # inp = "no"
-        if len(query_output) > 1:
+        if len(query_output) == 0:
+            query_output_string = "No data found for the query"
+        elif len(query_output) == 1:
+            query_output_string = query_output[
+                y].head(1).to_string(index=False)
+        else:
+            query_output_string = "There are " + str(
+                len(query_output)) + " matching rows found based on your query."
             more_query_string = "Do you want to apply more query on these rows. Type yes/no."
             print(more_query_string)
-            res += "\n" + more_query_string
+            query_output_string += "\n" + more_query_string
             updated_inp_file_df = query_output
-            # res = "Do you want to apply more query on these rows. Type yes/no"
+
+        print(query_output_string)
+        res = query_output_string
     elif operation == 0:
         try:
             res = str(query_output[y].min()) + " to " + str(query_output[y].max())
