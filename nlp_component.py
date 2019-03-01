@@ -86,6 +86,8 @@ def running_bot():
     if msg == "yes":
         flag_df_changed = True
         return "Please provide the query"
+    if msg == "no":
+        return "Thank you"
     if msg == "help":
         return json.dumps({"type": "array", "value": help_strings})
     if not flag_df_changed:
