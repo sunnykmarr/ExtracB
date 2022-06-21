@@ -11,7 +11,7 @@ itsdangerous==1.1.0
 Jinja2==2.10
 MarkupSafe==1.1.1
 nltk==3.4
-numpy==1.15.4
+numpy==1.22.0
 pandas==0.24.1
 pycparser==2.19
 pyOpenSSL==19.0.0
